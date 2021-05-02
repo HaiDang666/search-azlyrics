@@ -1,0 +1,28 @@
+{
+  "name": "search-azlyrics",
+  "version": "0.0.1",
+  "description": "search lyric from azlyrics",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "keywords": [
+    "song",
+    "lyrics",
+    "lyric",
+    "music"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HaiDang666/search-azlyrics.git"
+  },
+  "author": "Haidang666",
+  "license": "MIT",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.6",
+    "node-fetch": "^2.3.0"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
