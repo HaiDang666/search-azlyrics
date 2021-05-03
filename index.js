@@ -56,7 +56,7 @@ function getCheerioHtml(url) {
 }
 
 function doesAzFoundAnyResult(html) {
-	return html.selector('div[class="alert alert-warning"]').lenght === 0;
+	return html('div[class="alert alert-warning"]').length === 0;
 }
 
 function selectSuitableTrackUrl(html) {
