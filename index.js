@@ -2,99 +2,100 @@ const fetch = require('node-fetch');
 const cheerio = require('cheerio');
 const Promise = require('bluebird');
 
-class Lyrics {
-    /**
-      * Search lyrics
-      * @param {String} query Query you selected/searched
-      * @returns {Promise<String>} The lyrics the API provided.
-      **/
-    async search(query) {
-       await request(`https:///search.azlyrics.com/search.php?q=${query.replace(/\s/g, "+")}`, (err, body, res) => {
-            const $ = cheerio.load(res);
-            let lyricLink = $('div.col-xs-12.col-sm-offset-1.col-md-8.col-md-offset-2.text-center').find('div.panel').eq(2).find('td.text-left.visitedlyr').find('a').eq(0).attr('href');
-            if(lyricLink === undefined) lyricLink = $('div.col-xs-12.col-sm-offset-1.col-md-8.col-md-offset-2.text-center').find('div.panel').eq(1).find('td.text-left.visitedlyr').find('a').eq(0).attr('href');
-            if(lyricLink === undefined) lyricLink = $('div.col-xs-12.col-sm-offset-1.col-md-8.col-md-offset-2.text-center').find('div.panel').eq(0).find('td.text-left.visitedlyr').find('a').eq(0).attr('href');
-            if(lyricLink === undefined) return "No lyrics found.";
-           
-            request(lyricLink, (e, ress, uwu) => {
-                let artistt = o('div.col-xs-12.col-lg-8.text-center').find('div').eq(4).text().replace('Lyrics', '').replace('\n', '').replace('\n', '');
-                let sung = o('div.col-xs-12.col-lg-8.text-center').find('div').eq(3).text().replace('lyrics', '').replace('"', '').replace('"', '');
-                let lyrics = o('div.col-xs-12.col-lg-8.text-center').find('div').eq(6).text();
-                
-                const info = {
-                     lyric: lyrics,
-                     song: sung,
-                     artist: artistt
-                };
-                
-                return info;
-            });
-       });
-    }
-}
-
 const BASE_URL = 'https://search.azlyrics.com/?q=';
 
 function makeSearchUrl(artistName, trackName) {
-	return `${BASE_URL}${artistName.replace(/\s/g, '+')}+${trackName.replace(/\s/g, '+')}`
+  return `${BASE_URL}${artistName.replace(/\s/g, '+')}+${trackName.replace(/\s/g, '+')}`;
 }
 
-function checkFetchStatus (response) {
-	if (response.status !== 200 || !response.ok) {
-			let error = new Error(response.statusText)
-			error.response = response
-			return Promise.reject(error)
-	}
-	return Promise.resolve(response)
+function checkFetchStatus(response) {
+  if (response.status !== 200 || !response.ok) {
+    let error = new Error(response.statusText);
+    error.response = response;
+    return Promise.reject(error);
+  }
+  return Promise.resolve(response);
 }
 
 function getCheerioHtml(url) {
-	return fetch(url)
-		.then(response => checkFetchStatus(response))
-		.then(response => response.text())
-		.then(html => cheerio.load(html))
+  return fetch(url)
+    .then((response) => checkFetchStatus(response))
+    .then((response) => response.text())
+    .then((html) => cheerio.load(html));
 }
 
 function doesAzFoundAnyResult(html) {
-	return html('div[class="alert alert-warning"]').length === 0;
+  return html('div[class="alert alert-warning"]').length === 0;
 }
 
-function selectSuitableTrackUrl(html) {
+function extractSongListFromTable(html) {
+  const songs = [];
+  const table = html('table[class="table table-condensed"] > tbody').first();
+  const tableRows = table.children();
+  const endOfTableIndex = tableRows.length - 1;
 
-	if (doesAzFoundAnyResult(html)) {
-		// get result array
-		// check each link
-		// if one link ok
-		// resolve the link
-		// else reject 
-	} else {
-		const error = new Error('azlyrics does not found any result for giving artist and track');
-		return Promise.reject(error)
-	}
+  tableRows.each(function (index, tableRow) {
+    if (index < endOfTableIndex) {
+      const tableData = tableRow.children[0];
+      const aTag = tableData.children[1];
+      const title = aTag.children[0];
+      const artist = tableData.children[3];
+
+      songs.push({
+        title: html(title).text().replace(/"/g, ''),
+        url: html(aTag).attr('href'),
+        artist: html(artist).text(),
+      });
+    }
+  });
+
+  return songs;
+}
+
+function isSongDetailMatched(song, artistName, trackName) {
+  return (
+    song.title.toLowerCase().indexOf(trackName) !== -1 &&
+    song.artist.toLowerCase().indexOf(artistName) !== -1
+  );
+}
+
+function selectSuitableTrackUrl(html, artistName, trackName) {
+  let error = new Error('Does not found any result for the giving artist and track');
+
+  if (doesAzFoundAnyResult(html)) {
+    const foundedSongs = extractSongListFromTable(html);
+    for (song of foundedSongs) {
+      if (isSongDetailMatched(song, artistName, trackName)) {
+        return Promise.resolve(song.url);
+      }
+    }
+    error = new Error('Found results but not match for the giving artist and track');
+  }
+
+  return Promise.reject(error);
 }
 
 function extractLyrics(html) {
-	// html selector
-	// resovle text
+  const lyrics = html('div.col-xs-12.col-lg-8.text-center').find('div:not([class])').text();
+  return Promise.resolve(lyrics);
 }
 
-function getLyricFrom(url) {
-
-	return getCheerioHtml(url)
-		.then(html => selectSuitableTrackUrl(html))
-		.then(selectedUrl => getCheerioHtml(selectedUrl))
-		.then(html => extractLyrics(html))
-		.catch(err => {
-			return Promise.reject(err);
-		});
+function getLyricFrom(url, artistName, trackName) {
+  return getCheerioHtml(url)
+    .then((html) => selectSuitableTrackUrl(html, artistName, trackName))
+    .then((selectedUrl) => getCheerioHtml(selectedUrl))
+    .then((html) => extractLyrics(html))
+    .catch((err) => {
+      return Promise.reject(err);
+    });
 }
 
-async function search (artistName, trackName) {
-	const url = makeSearchUrl(artistName.trim(), trackName.trim());
+async function search(artistName, trackName) {
+  const url = makeSearchUrl(artistName.trim(), trackName.trim());
 
-	return getLyricFrom(url);
+  return getLyricFrom(url, artistName.trim(), trackName.trim());
 }
 
 module.exports = {
-	search
+  search,
 };

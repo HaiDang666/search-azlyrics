@@ -4,7 +4,9 @@
   "description": "search lyric from azlyrics",
   "main": "index.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "start": "node example.js",
+    "lint": "prettier --write '**.js' && eslint **.js"
   },
   "keywords": [
     "song",
@@ -24,6 +26,11 @@
     "node-fetch": "^2.3.0"
   },
   "devDependencies": {
-    "jest": "^26.6.3"
+    "eslint": "^7.23.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "jest": "^26.6.3",
+    "prettier": "2.2.1"
   }
 }
