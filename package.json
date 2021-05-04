@@ -19,7 +19,7 @@
     "url": "git+https://github.com/HaiDang666/search-azlyrics.git"
   },
   "author": "Haidang666",
-  "license": "MIT",
+  "license": "GNU3",
   "dependencies": {
     "bluebird": "^3.7.2",
     "cheerio": "^1.0.0-rc.6",
