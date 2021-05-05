@@ -1,6 +1,6 @@
 {
   "name": "search-azlyrics",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "search lyric from azlyrics",
   "main": "index.js",
   "scripts": {
