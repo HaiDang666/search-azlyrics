@@ -42,9 +42,9 @@ function extractSongListFromTable(html) {
       const artist = tableData.children[3];
 
       songs.push({
-        title: html(title).text().replace(/"/g, '').toLowerCase(),
+        title: trimAndLowerCase(html(title).text().replace(/"/g, '')),
         url: html(aTag).attr('href'),
-        artist: html(artist).text().toLowerCase(),
+        artist: trimAndLowerCase(html(artist).text()),
       });
     }
   });
@@ -90,10 +90,16 @@ function getLyricFrom(url, artistName, trackName) {
     });
 }
 
-async function search(artistName, trackName) {
-  const url = makeSearchUrl(artistName.trim(), trackName.trim());
+function trimAndLowerCase(str) {
+  return str.trim().toLowerCase();
+}
 
-  return getLyricFrom(url, artistName.trim(), trackName.trim());
+async function search(artistName, trackName) {
+  const track = trimAndLowerCase(trackName);
+  const artist = trimAndLowerCase(artistName);
+  const url = makeSearchUrl(artist, track);
+
+  return getLyricFrom(url, artist, track);
 }
 
 module.exports = {
