@@ -42,9 +42,9 @@ function extractSongListFromTable(html) {
       const artist = tableData.children[3];
 
       songs.push({
-        title: html(title).text().replace(/"/g, ''),
+        title: html(title).text().replace(/"/g, '').toLowerCase(),
         url: html(aTag).attr('href'),
-        artist: html(artist).text(),
+        artist: html(artist).text().toLowerCase(),
       });
     }
   });
@@ -54,8 +54,8 @@ function extractSongListFromTable(html) {
 
 function isSongDetailMatched(song, artistName, trackName) {
   return (
-    song.title.toLowerCase().indexOf(trackName) !== -1 &&
-    song.artist.toLowerCase().indexOf(artistName) !== -1
+    (song.title.indexOf(trackName) !== -1 && song.artist.indexOf(artistName) !== -1) ||
+    (trackName.indexOf(song.title) !== -1 && artistName.indexOf(song.artist))
   );
 }
 

@@ -1,4 +1,4 @@
 /* eslint-disable no-console */
 const az = require('./index');
 
-az.search('justin bieber', 'baby').then(console.log);
+az.search('taylor swift', '22').then(console.log);
